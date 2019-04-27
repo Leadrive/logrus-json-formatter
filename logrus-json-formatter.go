@@ -1,4 +1,4 @@
-package logrus-json-formatter
+package unescape
 
 import (
 	"bytes"
