@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+
+	logrus "github.com/sirupsen/logrus"
 )
 
 type fieldKey string
@@ -54,8 +56,8 @@ type JSONFormatter struct {
 }
 
 // Format renders a single log entry
-func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
-	data := make(Fields, len(entry.Data)+4)
+func (f *JSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	data := make(logrus.Fields, len(entry.Data)+4)
 	for k, v := range entry.Data {
 		switch v := v.(type) {
 		case error:
@@ -68,7 +70,7 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 	}
 
 	if f.DataKey != "" {
-		newData := make(Fields, 4)
+		newData := make(logrus.Fields, 4)
 		newData[f.DataKey] = data
 		data = newData
 	}
@@ -80,13 +82,13 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 		timestampFormat = defaultTimestampFormat
 	}
 
-	if entry.err != "" {
-		data[f.FieldMap.resolve(FieldKeyLogrusError)] = entry.err
-	}
+	// if entry.err != "" {
+	// 	data[f.FieldMap.resolve(logrus.FieldKeyLogrusError)] = entry.err
+	// }
 	if !f.DisableTimestamp {
-		data[f.FieldMap.resolve(FieldKeyTime)] = entry.Time.Format(timestampFormat)
+		data[f.FieldMap.resolve(logrus.FieldKeyTime)] = entry.Time.Format(timestampFormat)
 	}
-	data[f.FieldMap.resolve(FieldKeyMsg)] = entry.Message
+	data[f.FieldMap.resolve(logrus.FieldKeyMsg)] = entry.Message
 	data[f.FieldMap.resolve(FieldKeyLevel)] = entry.Level.String()
 	if entry.HasCaller() {
 		funcVal := entry.Caller.Function
@@ -95,7 +97,7 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 			funcVal, fileVal = f.CallerPrettyfier(entry.Caller)
 		}
 		if funcVal != "" {
-			data[f.FieldMap.resolve(FieldKeyFunc)] = funcVal
+			data[f.FieldMap.resolve(logrus.FieldKeyFunc)] = funcVal
 		}
 		if fileVal != "" {
 			data[f.FieldMap.resolve(FieldKeyFile)] = fileVal
